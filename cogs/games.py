@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import secrets
 from asyncio import TimeoutError
-from discord import Member, AllowedMentions, Embed
+from discord import Member, Embed
 from discord.ext import commands
 
 
@@ -70,8 +70,8 @@ class TicTacToe:
 
     @property
     def emojis(self):
-        return {x: f'{x}\N{VARIATION SELECTOR-16}'
-                '\N{COMBINING ENCLOSING KEYCAP}'
+        return {f'{x}\N{VARIATION SELECTOR-16}'
+                '\N{COMBINING ENCLOSING KEYCAP}': x
                 for x in range(1, 10)}
 
     def is_winner(self, player):
@@ -139,13 +139,12 @@ class TicTacToe:
                     check=(
                         lambda x: x.message_id == self.message.id
                         and x.user_id == self.turn.id
-                        and x.emoji.name in self.emojis.values()
+                        and x.emoji.name in self.emojis
                     ),
                     timeout=60
                 )
 
-                emoji = payload.emoji.name
-                move = list(self.emojis.keys())[list(self.emojis.values()).index(emoji)]
+                move = self.emojis[payload.emoji.name]
                 coord = moves[move]
                 coord.append(player)
                 can_move = self.set_move(*coord)
@@ -238,7 +237,7 @@ class TicTacToe:
         self.bot.loop.create_task(self.add_reactions())
 
     async def add_reactions(self):
-        for e in self.emojis.values():
+        for e in self.emojis:
             await self.message.add_reaction(e)
 
     async def quit(self):
@@ -420,7 +419,7 @@ class Games(commands.Cog):
             idx = 0
 
         content = ''
-        page = page - 1 if page is not None else 0 + idx // 10
+        page = page - 1 if page is not None else idx // 10
         idx = page * 10
         for i in range(idx, idx+10):
             try:
@@ -433,7 +432,7 @@ class Games(commands.Cog):
             return await ctx.send('Page doesn\'t exist!')
 
         embed = Embed(title='Global Leaderboard', description=content)
-        await ctx.send(embed=embed, allowed_mentions=AllowedMentions(users=False))
+        await ctx.send(embed=embed)
 
     @staticmethod
     def find_index(array, element):
