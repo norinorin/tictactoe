@@ -94,10 +94,7 @@ class TicTacToe:
 
         win_state.extend(diagonals)
 
-        if [player for _ in range(3)] in win_state:
-            return True
-
-        return False
+        return ([player for _ in range(3)] in win_state)
 
     async def ai_turn(self):
         if self.game_over:
@@ -158,10 +155,7 @@ class TicTacToe:
         return True
 
     def valid_move(self, x, y):
-        if [x, y] in self.empty_cells:
-            return True
-
-        return False
+        return ([x, y] in self.empty_cells)
 
     def set_move(self, x, y, player):
         if self.valid_move(x, y):
@@ -183,10 +177,7 @@ class TicTacToe:
         """
         The actual minimax method
         """
-        if player == self.COMP:
-            best = [-1, -1, float('-inf')]
-        else:
-            best = [-1, -1, float('inf')]
+        best = [-1, -1, float('-inf' if player == self.COMP else 'inf')]
 
         if depth == 0 or self.game_over:
             score = self.evaluate()
@@ -229,11 +220,10 @@ class TicTacToe:
         board_view += '```'
 
         embed = Embed(title='Tic Tac Toe', description=board_view)
-        kwargs = {'embed': embed, 'content': title}
         if self.message:
-            return await self.message.edit(**kwargs)
+            return await self.message.edit(embed=embed, content=title)
 
-        self.message = await self.ctx.send(**kwargs)
+        self.message = await self.ctx.send(embed=embed, content=title)
         self.bot.loop.create_task(self.add_reactions())
 
     async def add_reactions(self):
@@ -375,11 +365,11 @@ class Games(commands.Cog):
             or member == ctx.author
         ):
             # case where the author asks a bot to play
-            return await ctx.send("You can play with me intead :)")
+            return await ctx.send("You can play with me instead :)")
 
         if member != ctx.me:
             # case where the author asks a user to play
-            await ctx.send(f'{member}, you want to play with {ctx.author}?')
+            await ctx.send(f'{member}, do you want to play with {ctx.author}?')
 
             try:
                 msg = await self.bot.wait_for(
