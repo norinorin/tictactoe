@@ -16,12 +16,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-import logging
 import json
+import logging
+
 from core.bot import Bot
 
-
-with open('config.json', 'r') as f:
+with open("config.json", "r") as f:
     config = json.load(f)
 
 
@@ -31,12 +31,13 @@ log.setLevel(logging.INFO)
 ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 
-formatter = logging.Formatter("%(asctime)s %(levelname)s "
-                              "[%(module)s]:%(lineno)d %(message)s")
+formatter = logging.Formatter(
+    "%(asctime)s %(levelname)s " "[%(module)s]:%(lineno)d %(message)s"
+)
 
 ch.setFormatter(formatter)
 log.addHandler(ch)
 
 
 bot = Bot()
-bot.run(config['token'])
+bot.run(config["token"])

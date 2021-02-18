@@ -19,7 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import secrets
 from asyncio import TimeoutError
-from discord import Member, Embed
+
+from discord import Embed, Member
 from discord.ext import commands
 
 
@@ -43,12 +44,8 @@ class TicTacToe:
         self.message = None
         self.player1 = self.turn = ctx.author
         self.player2 = member or ctx.me
-        self.p1 = self.p2 = ''
-        self.board = [
-            [0, 0, 0],
-            [0, 0, 0],
-            [0, 0, 0]
-        ]
+        self.p1 = self.p2 = ""
+        self.board = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
     @property
     def empty_cells(self):
@@ -62,7 +59,9 @@ class TicTacToe:
 
     @property
     def game_over(self):
-        return self.depth == 0 or self.is_winner(self.HUMAN) or self.is_winner(self.COMP)
+        return (
+            self.depth == 0 or self.is_winner(self.HUMAN) or self.is_winner(self.COMP)
+        )
 
     @property
     def depth(self):
@@ -70,9 +69,10 @@ class TicTacToe:
 
     @property
     def emojis(self):
-        return {f'{x}\N{VARIATION SELECTOR-16}'
-                '\N{COMBINING ENCLOSING KEYCAP}': x
-                for x in range(1, 10)}
+        return {
+            f"{x}\N{VARIATION SELECTOR-16}" "\N{COMBINING ENCLOSING KEYCAP}": x
+            for x in range(1, 10)
+        }
 
     def is_winner(self, player):
         state = self.board
@@ -88,9 +88,7 @@ class TicTacToe:
             win_state.append(row)
             win_state.append(col)
             diagonals[0].append(state[x][x])
-            diagonals[1].append(state[abs(x-2)][x]
-                                if x != 1
-                                else state[1][1])
+            diagonals[1].append(state[abs(x - 2)][x] if x != 1 else state[1][1])
 
         win_state.extend(diagonals)
 
@@ -115,9 +113,7 @@ class TicTacToe:
             return True
 
         player, sign = (
-            (self.HUMAN, self.p1)
-            if self.turn == self.player1
-            else (self.COMP, self.p2)
+            (self.HUMAN, self.p1) if self.turn == self.player1 else (self.COMP, self.p2)
         )
         move = -1
         moves = {}
@@ -127,18 +123,18 @@ class TicTacToe:
                 n += 1
                 moves[n] = [x, y]
 
-        await self.render(f'{self.turn.mention}\'s turn! ({sign})')
+        await self.render(f"{self.turn.mention}'s turn! ({sign})")
 
         while move < 1 or move > 9:
             try:
                 payload = await self.bot.wait_for(
-                    'raw_reaction_add',
+                    "raw_reaction_add",
                     check=(
                         lambda x: x.message_id == self.message.id
                         and x.user_id == self.turn.id
                         and x.emoji.name in self.emojis
                     ),
-                    timeout=60
+                    timeout=60,
                 )
 
                 move = self.emojis[payload.emoji.name]
@@ -177,7 +173,7 @@ class TicTacToe:
         """
         The actual minimax method
         """
-        best = [-1, -1, float('-inf' if player == self.COMP else 'inf')]
+        best = [-1, -1, float("-inf" if player == self.COMP else "inf")]
 
         if depth == 0 or self.game_over:
             score = self.evaluate()
@@ -185,9 +181,9 @@ class TicTacToe:
 
         for cell in self.empty_cells:
             x, y = cell
-            self.board[x][y] = player   # evaluates
+            self.board[x][y] = player  # evaluates
             score = self.minimax(depth - 1, -player)
-            self.board[x][y] = 0        # resets to 0
+            self.board[x][y] = 0  # resets to 0
             score[0], score[1] = x, y
 
             if player == self.COMP:
@@ -201,25 +197,22 @@ class TicTacToe:
         return best
 
     async def render(self, title):
-        signs = {
-            -1: self.p1,
-            1: self.p2
-        }
+        signs = {-1: self.p1, 1: self.p2}
 
-        str_line = '---------------'  # whatever
-        board_view = f'```\n{str_line}\n'
+        str_line = "---------------"  # whatever
+        board_view = f"```\n{str_line}\n"
         n = 0
         for row in self.board:
             for cell in row:
                 n += 1
                 sign = signs.get(cell, n)
-                board_view += f'| {sign} |'
+                board_view += f"| {sign} |"
 
-            board_view += f'\n{str_line}\n'
+            board_view += f"\n{str_line}\n"
 
-        board_view += '```'
+        board_view += "```"
 
-        embed = Embed(title='Tic Tac Toe', description=board_view)
+        embed = Embed(title="Tic Tac Toe", description=board_view)
         kwargs = dict(embed=embed, content=title)
         if self.message:
             return await self.message.edit(**kwargs)
@@ -232,11 +225,10 @@ class TicTacToe:
             await self.message.add_reaction(e)
 
     async def quit(self):
-        winner = (self.player1
-                  if self.turn != self.player1
-                  else self.player2)
-        await self.render(f'{self.turn.mention} quit the game, '
-                          f'{winner.mention} won!')
+        winner = self.player1 if self.turn != self.player1 else self.player2
+        await self.render(
+            f"{self.turn.mention} quit the game, " f"{winner.mention} won!"
+        )
         await self.update_xp(winner, self.turn)
 
     async def update_xp(self, winner, loser):
@@ -265,7 +257,7 @@ class TicTacToe:
             return
 
         xp -= xp * 10 / 100
-        xp = clamp(xp, 0, float('inf'))
+        xp = clamp(xp, 0, float("inf"))
         await self.db.put(loser.id, xp)
 
     @property
@@ -274,13 +266,13 @@ class TicTacToe:
 
     async def start(self):
         try:
-            self.p1 = secrets.choice(('X', 'O'))
-            if self.p1 == 'X':
-                self.p2 = 'O'
+            self.p1 = secrets.choice(("X", "O"))
+            if self.p1 == "X":
+                self.p2 = "O"
             else:
-                self.p2 = 'X'
+                self.p2 = "X"
 
-            first = secrets.choice(('n', ''))
+            first = secrets.choice(("n", ""))
 
             if self.is_enemy_human:
                 # case where the enemy is a human
@@ -294,29 +286,28 @@ class TicTacToe:
             else:
                 # case where the enemy is a computer
                 player2_turn = self.ai_turn
-                await self.ctx.send('First to start? [y(es)/n(o)/r(andom)/q(uit)]')
+                await self.ctx.send("First to start? [y(es)/n(o)/r(andom)/q(uit)]")
 
                 try:
                     msg = await self.bot.wait_for(
-                        'message',
+                        "message",
                         check=(
                             lambda x: x.author == self.ctx.author
-                            and x.content.lower().startswith(('y', 'n',
-                                                              'q', 'r'))
+                            and x.content.lower().startswith(("y", "n", "q", "r"))
                         ),
-                        timeout=60
+                        timeout=60,
                     )
 
-                    if (msg := msg.content.lower()).startswith('q'):
-                        return await self.ctx.send('You\'ve quit the game')
+                    if (msg := msg.content.lower()).startswith("q"):
+                        return await self.ctx.send("You've quit the game")
 
-                    if msg not in ('r', 'random'):
+                    if msg not in ("r", "random"):
                         first = msg
 
                 except TimeoutError:
-                    return await self.ctx.send('You took too long to answer!')
+                    return await self.ctx.send("You took too long to answer!")
 
-            if first.startswith('n'):
+            if first.startswith("n"):
                 if not await player2_turn():
                     return
 
@@ -327,7 +318,7 @@ class TicTacToe:
                 if not await player2_turn():
                     return
 
-            text = '{0.mention} won the game! ({1})'
+            text = "{0.mention} won the game! ({1})"
             if self.is_winner(self.HUMAN):
                 winner, loser = self.player1, self.player2
                 text = text.format(winner, self.p1)
@@ -335,7 +326,7 @@ class TicTacToe:
                 winner, loser = self.player2, self.player1
                 text = text.format(winner, self.p2)
             else:
-                text = 'Draw!'
+                text = "Draw!"
                 winner, loser = None, None
 
             await self.update_xp(winner, loser)
@@ -349,57 +340,52 @@ class Games(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(
-        aliases=['ttt']
-    )
+    @commands.command(aliases=["ttt"])
     async def tictactoe(self, ctx, *, member: Member = None):
         """
         Play TicTacToe with your friend!
         You can also play with me, but I doubt you'll win
         """
         if ctx.channel.id in self.bot.ttt_games:
-            return await ctx.send('Can only play 1 game in a channel concurrently')
+            return await ctx.send("Can only play 1 game in a channel concurrently")
 
         member = member or ctx.me
-        if (
-            (member.bot and member != ctx.me)
-            or member == ctx.author
-        ):
+        if (member.bot and member != ctx.me) or member == ctx.author:
             # case where the author asks a bot to play
             return await ctx.send("You can play with me instead :)")
 
         if member != ctx.me:
             # case where the author asks a user to play
-            await ctx.send(f'{member}, do you want to play with {ctx.author}?')
+            await ctx.send(f"{member}, do you want to play with {ctx.author}?")
 
             try:
                 msg = await self.bot.wait_for(
-                    'message',
+                    "message",
                     check=(
                         lambda x: x.author == member
                         and x.channel.id == ctx.channel.id
-                        and x.content.lower().startswith(('y', 'n'))
-                    )
+                        and x.content.lower().startswith(("y", "n"))
+                    ),
                 )
 
                 content = msg.content.lower()
-                if content.startswith('n'):
-                    return await ctx.send(f'{member} refused to play :(')
+                if content.startswith("n"):
+                    return await ctx.send(f"{member} refused to play :(")
 
                 if ctx.channel.id in self.bot.ttt_games:
                     # case where the user accepted
                     # but another game is already running
-                    return await ctx.send('Can only play 1 game in a channel concurrently')
+                    return await ctx.send(
+                        "Can only play 1 game in a channel concurrently"
+                    )
 
             except TimeoutError:
-                return await ctx.send(f'{member} didn\'t respond')
+                return await ctx.send(f"{member} didn't respond")
 
         game = TicTacToe(ctx, member)
         await game.start()
 
-    @commands.command(
-        aliases=['lb']
-    )
+    @commands.command(aliases=["lb"])
     async def leaderboard(self, ctx, page: int = None):
         """
         Shows the global leaderboard
@@ -409,20 +395,20 @@ class Games(commands.Cog):
         if idx < 0:
             idx = 0
 
-        content = ''
+        content = ""
         page = page - 1 if page is not None else idx // 10
         idx = page * 10
-        for i in range(idx, idx+10):
+        for i in range(idx, idx + 10):
             try:
                 user_id, xp = sorted_db[i]
-                content += f'{i+1}. <@{user_id}> -> {round(xp, 2)}\n'
+                content += f"{i+1}. <@{user_id}> -> {round(xp, 2)}\n"
             except IndexError:
                 break
 
         if not content:
-            return await ctx.send('Page doesn\'t exist!')
+            return await ctx.send("Page doesn't exist!")
 
-        embed = Embed(title='Global Leaderboard', description=content)
+        embed = Embed(title="Global Leaderboard", description=content)
         await ctx.send(embed=embed)
 
     @staticmethod
@@ -434,7 +420,7 @@ class Games(commands.Cog):
         start = 0
         end = len(array)
         step = 0
-        while (start <= end):
+        while start <= end:
             step = step + 1
             mid = (start + end) // 2
 
@@ -448,4 +434,5 @@ class Games(commands.Cog):
         return -1
 
 
-def setup(bot): bot.add_cog(Games(bot))
+def setup(bot):
+    bot.add_cog(Games(bot))
