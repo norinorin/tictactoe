@@ -32,12 +32,11 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 
 formatter = logging.Formatter(
-    "%(asctime)s %(levelname)s " "[%(module)s]:%(lineno)d %(message)s"
+    "%(asctime)s %(levelname)s [%(module)s]:%(lineno)d %(message)s"
 )
 
 ch.setFormatter(formatter)
 log.addHandler(ch)
 
 
-bot = Bot()
-bot.run(config["token"])
+Bot().run(config["token"])

@@ -60,7 +60,7 @@ class TicTacToe:
     @property
     def game_over(self):
         return (
-            self.depth == 0 or self.is_winner(self.HUMAN) or self.is_winner(self.COMP)
+            self.depth == 0 or any(map(self.is_winner, (self.HUMAN, self.COMP)))
         )
 
     @property
@@ -70,7 +70,7 @@ class TicTacToe:
     @property
     def emojis(self):
         return {
-            f"{x}\N{VARIATION SELECTOR-16}" "\N{COMBINING ENCLOSING KEYCAP}": x
+            f"{x}\N{VARIATION SELECTOR-16}\N{COMBINING ENCLOSING KEYCAP}": x
             for x in range(1, 10)
         }
 
