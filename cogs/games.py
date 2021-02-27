@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 import secrets
-from asyncio import TimeoutError
+from asyncio import TimeoutError as AIOTimeoutError
 
 from discord import Embed, Member
 from discord.ext import commands
@@ -59,9 +59,7 @@ class TicTacToe:
 
     @property
     def game_over(self):
-        return (
-            self.depth == 0 or any(map(self.is_winner, (self.HUMAN, self.COMP)))
-        )
+        return self.depth == 0 or any(map(self.is_winner, (self.HUMAN, self.COMP)))
 
     @property
     def depth(self):
@@ -145,7 +143,7 @@ class TicTacToe:
                 if not can_move:
                     move = -1
 
-            except TimeoutError:
+            except AIOTimeoutError:
                 return await self.quit()
 
         return True

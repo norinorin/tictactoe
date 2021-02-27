@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import json
 import logging
 
-from core.bot import Bot
+from core import Bot
 
 with open("config.json", "r") as f:
     config = json.load(f)
