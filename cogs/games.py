@@ -86,7 +86,7 @@ class TicTacToe:
             win_state.append(row)
             win_state.append(col)
             diagonals[0].append(state[x][x])
-            diagonals[1].append(state[abs(x - 2)][x] if x != 1 else state[1][1])
+            diagonals[1].append(state[abs(x - 2)][x])
 
         win_state.extend(diagonals)
 
